@@ -32,7 +32,8 @@ public class JwtTokenProvider {
 
     public String generateToken(UserPrincipal userPrincipal) {
         String[] claims = getClaimsFromUser(userPrincipal);
-        return JWT.create().withIssuer(SecurityConstant.COMPANY_LLC)
+        return JWT.create()
+                .withIssuer(SecurityConstant.COMPANY_LLC)
                 .withAudience(SecurityConstant.COMPANY_ADMIN)
                 .withIssuedAt(new Date())
                 .withSubject(userPrincipal.getUsername())

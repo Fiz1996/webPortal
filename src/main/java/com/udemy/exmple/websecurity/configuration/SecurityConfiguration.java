@@ -1,6 +1,5 @@
 package com.udemy.exmple.websecurity.configuration;
 
-import com.udemy.exmple.websecurity.constant.SecurityConstant;
 import com.udemy.exmple.websecurity.filter.JwtAccessDeniedHandler;
 import com.udemy.exmple.websecurity.filter.JwtAuthenticationEntryPoint;
 import com.udemy.exmple.websecurity.filter.JwtAuthorizationFilter;
@@ -14,11 +13,13 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static com.udemy.exmple.websecurity.constant.SecurityConstant.PUBLIC_URLS;
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -32,7 +33,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     public SecurityConfiguration(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
                                  JwtAccessDeniedHandler jwtAccessDeniedHandler,
-                                 @Qualifier("userdetailsservice") UserDetailsService userDetailsService,
+                                 @Qualifier("userDetailsService") UserDetailsService userDetailsService,
                                  JwtAuthorizationFilter jwtAuthorizationFilter,
                                  BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
@@ -49,19 +50,20 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable().cors()
-        .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        .and().authorizeRequests().antMatchers(SecurityConstant.PUBLIC_URLS).permitAll().anyRequest().authenticated()
-        .and()
-        .exceptionHandling().accessDeniedHandler(jwtAccessDeniedHandler)
-        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-        .and()
-        .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.csrf().disable().cors().and()
+                .sessionManagement().sessionCreationPolicy(STATELESS)
+                .and().authorizeRequests().antMatchers(PUBLIC_URLS).permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .exceptionHandling().accessDeniedHandler(jwtAccessDeniedHandler)
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .and()
+                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
     @Override
-    public AuthenticationManager authenticationManager () throws Exception {
+    public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
 

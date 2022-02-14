@@ -16,6 +16,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+
+import static com.udemy.exmple.websecurity.constant.SecurityConstant.OPTIONS_HTTP_METHOD;
+import static com.udemy.exmple.websecurity.constant.SecurityConstant.Token_PREFIX;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+
 @Component
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private JwtTokenProvider jwtTokenProvider;
@@ -26,24 +31,24 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getMethod().equalsIgnoreCase(SecurityConstant.OPTIONS_HTTP_METHOD)) {
+        if (request.getMethod().equalsIgnoreCase(OPTIONS_HTTP_METHOD)) {
             response.setStatus(HttpStatus.OK.value());
         } else {
-            String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-            if (authorizationHeader == null || !authorizationHeader.startsWith(SecurityConstant.Token_PREFIX)) {
+            String authorizationHeader = request.getHeader(AUTHORIZATION);
+            if (authorizationHeader == null || !authorizationHeader.startsWith(Token_PREFIX)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-            String token = authorizationHeader.substring(SecurityConstant.Token_PREFIX.length());
+            String token = authorizationHeader.substring(Token_PREFIX.length());
             String username = jwtTokenProvider.getSubject(token);
-            if(jwtTokenProvider.isTokenValid(username,token) && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (jwtTokenProvider.isTokenValid(username, token) && SecurityContextHolder.getContext().getAuthentication() == null) {
                 List<GrantedAuthority> authorities = jwtTokenProvider.getAuthorities(token);
-                Authentication authentication = jwtTokenProvider.getAuthentication(username,authorities,request);
+                Authentication authentication = jwtTokenProvider.getAuthentication(username, authorities, request);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
                 SecurityContextHolder.clearContext();
             }
         }
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }

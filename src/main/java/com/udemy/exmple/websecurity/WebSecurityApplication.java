@@ -12,7 +12,7 @@ public class WebSecurityApplication {
 		SpringApplication.run(WebSecurityApplication.class, args);
 	}
 	@Bean
-	BCryptPasswordEncoder passwordEncoder() {
+	public BCryptPasswordEncoder bCryptPasswordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 }
