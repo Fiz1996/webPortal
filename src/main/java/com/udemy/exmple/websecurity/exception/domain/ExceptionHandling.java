@@ -27,6 +27,7 @@ public class ExceptionHandling implements ErrorController {
     private static final String EMAIL_EXISTS_EXCEPTION = "This email already exists";
     public static final String USER_NAME_EXISTS_EXCEPTION = "Username already exists";
     private static final String ERROR_PATH = "/error";
+    public static final String USERNAME_OR_PASSWORD_IS_INCORRECT = "username or password is incorrect";
     private final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandling.class);
 
     @ExceptionHandler(DisabledException.class)
@@ -46,7 +47,7 @@ public class ExceptionHandling implements ErrorController {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<HttpResponse> badCredentialException() {
-        return createHttpResponse(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase());
+        return createHttpResponse(HttpStatus.BAD_REQUEST, USERNAME_OR_PASSWORD_IS_INCORRECT);
     }
 
     @ExceptionHandler(EmailExistsException.class)
