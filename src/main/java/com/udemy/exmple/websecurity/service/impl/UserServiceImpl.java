@@ -20,10 +20,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.mail.MessagingException;
 import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import static com.udemy.exmple.websecurity.constant.UserImplConstant.*;
 
@@ -35,12 +35,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private UserRepository userRepository;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private LoginAttemptImpl loginAttemptService;
+    private EmailServiceImpl emailService;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, LoginAttemptImpl loginAttemptService) {
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, LoginAttemptImpl loginAttemptService ,EmailServiceImpl emailService) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.loginAttemptService = loginAttemptService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -74,7 +76,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public Users register(String firstName, String lastName, String username, String email) throws EmailExistsException, UsernameExistsException {
+    public Users register(String firstName, String lastName, String username, String email) throws EmailExistsException, UsernameExistsException, MessagingException {
         validateNewUsernameAndEmail(StringUtils.EMPTY, username, email);
         Users user = new Users();
         user.setUserId(generateUserId());
@@ -92,6 +94,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setAuthorities(Role.ROLE_USER.getAuthorities());
         user.setProfileImageUrl(getTemporaryProfileImageUrl());
         userRepository.save(user);
+        emailService.sendNewPasswordEmail(firstName,lastName,password,email);
         return user;
     }
 

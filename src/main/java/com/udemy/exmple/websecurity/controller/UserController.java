@@ -18,6 +18,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.web.bind.annotation.*;
 
 
+import javax.mail.MessagingException;
+
 import static com.udemy.exmple.websecurity.constant.SecurityConstant.JWT_TOKEN_HEADER;
 @Slf4j
 @RestController
@@ -48,7 +50,7 @@ public class UserController extends ExceptionHandling {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Users> register(@RequestBody Users users) throws EmailExistsException, UsernameExistsException {
+    public ResponseEntity<Users> register(@RequestBody Users users) throws EmailExistsException, UsernameExistsException, MessagingException {
         Users user =  userService.register(users.getFirstName(), users.getLastName(), users.getUsername(), users.getEmail());
         return new ResponseEntity<>( user, HttpStatus.OK);
 
