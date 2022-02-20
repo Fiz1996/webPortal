@@ -20,34 +20,35 @@ import static com.udemy.exmple.websecurity.constant.EmailConstant.*;
 @Service
 public class EmailServiceImpl {
 
-    public void sendNewPasswordEmail(String FirstName, String LastName,String password, String email) throws MessagingException {
-        Message message = createEmail(FirstName,LastName,password,email);
-        SMTPTransport smtpTransport= (SMTPTransport) getEmailSession().getTransport(SMTP_PROTOCOL);
-        smtpTransport.connect(HOST,USERNAME,PASSWORD);
+    public void sendNewPasswordEmail(String FirstName, String LastName, String password, String email) throws MessagingException {
+        Message message = createEmail(FirstName, LastName, password, email);
+        SMTPTransport smtpTransport = (SMTPTransport) getEmailSession().getTransport(SMTP_PROTOCOL);
+        smtpTransport.connect(HOST, USERNAME, PASSWORD);
         smtpTransport.sendMessage(message, message.getAllRecipients());
         smtpTransport.close();
     }
-    private Message createEmail(String FirstName, String LastName,String password, String email) throws MessagingException {
+
+    private Message createEmail(String FirstName, String LastName, String password, String email) throws MessagingException {
         Message message = new MimeMessage(getEmailSession());
         message.setFrom(new InternetAddress(FROM_EMAIL));
-        message.setRecipients(Message.RecipientType.TO,InternetAddress.parse(email,false));
-        message.setRecipients(Message.RecipientType.CC,InternetAddress.parse(CC_EMAIL,false));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email, false));
+        message.setRecipients(Message.RecipientType.CC, InternetAddress.parse(CC_EMAIL, false));
         message.setSubject(EMAIL_SUBJECT);
-        message.setText("Hello"+FirstName+"Your account password is "+password);
+        message.setText("Hello" + FirstName + "Your account password is " + password);
         message.setSentDate(new Date());
         message.saveChanges();
         return message;
     }
 
 
-    private Session getEmailSession () {
+    private Session getEmailSession() {
         Properties properties = System.getProperties();
-        properties.put(SMTP_HOST,HOST);
-        properties.put(SMTP_PORT,PORT);
-        properties.put(SMTP_AUTH,true);
-        properties.put(SMTP_STARTTLS_ENABLED,true);
-        properties.put(SMTP_STARTTLS_REQUIRED,true);
-        return Session.getInstance(properties,null);
+        properties.put(SMTP_HOST, HOST);
+        properties.put(SMTP_PORT, PORT);
+        properties.put(SMTP_AUTH, true);
+        properties.put(SMTP_STARTTLS_ENABLED, true);
+        properties.put(SMTP_STARTTLS_REQUIRED, true);
+        return Session.getInstance(properties, null);
     }
 
 }

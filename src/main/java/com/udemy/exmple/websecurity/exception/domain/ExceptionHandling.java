@@ -28,6 +28,7 @@ public class ExceptionHandling implements ErrorController {
     public static final String USER_NAME_EXISTS_EXCEPTION = "Username already exists";
     private static final String ERROR_PATH = "/error";
     public static final String USERNAME_OR_PASSWORD_IS_INCORRECT = "username or password is incorrect";
+    public static final String EMAIL_NOT_FOUND = "email not found";
     private final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandling.class);
 
     @ExceptionHandler(DisabledException.class)
@@ -38,6 +39,11 @@ public class ExceptionHandling implements ErrorController {
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<HttpResponse> lockedException() {
         return createHttpResponse(UNAUTHORIZED, ACCOUNT_LOCKED);
+    }
+
+    @ExceptionHandler(EmailNotFoundException.class)
+    public ResponseEntity<HttpResponse> emailNotFound() {
+        return createHttpResponse(HttpStatus.BAD_REQUEST, EMAIL_NOT_FOUND);
     }
 
     @ExceptionHandler(UsernameExistsException.class)
