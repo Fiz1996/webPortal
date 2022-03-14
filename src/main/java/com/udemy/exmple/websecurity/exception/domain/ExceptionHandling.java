@@ -7,6 +7,7 @@ import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -60,7 +61,10 @@ public class ExceptionHandling implements ErrorController {
     ResponseEntity<HttpResponse> emailExistsException() {
         return createHttpResponse(HttpStatus.BAD_REQUEST, EMAIL_EXISTS_EXCEPTION);
     }
-
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<HttpResponse> accessDeniedException() {
+        return createHttpResponse(HttpStatus.FORBIDDEN,HttpStatus.FORBIDDEN.getReasonPhrase());
+    }
 //    @ExceptionHandler(NoHandlerFoundException.class)
 //    public ResponseEntity<HttpResponse> methodNotSupportedException(NoHandlerFoundException exception) {
 //        return createHttpResponse(HttpStatus.BAD_REQUEST,"This page was not found");

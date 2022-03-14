@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.udemy.exmple.websecurity.constant.SecurityConstant;
 import com.udemy.exmple.websecurity.domain.UserPrincipal;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,31 +17,34 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.udemy.exmple.websecurity.constant.SecurityConstant.AUTHORITIES;
-import static com.udemy.exmple.websecurity.constant.SecurityConstant.TOKEN_CANNOT_BE_VERIFIED;
+import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
+import static com.udemy.exmple.websecurity.constant.SecurityConstant.*;
 import static java.util.Arrays.stream;
+
 @Component
-public class JwtTokenProvider {
+@Slf4j
+public class JWTTokenProvider {
+
     @Value("${jwt.secret}")
     private String secret;
 
-    public String generateToken(UserPrincipal userPrincipal) {
+
+    public String generateJwtToken(UserPrincipal userPrincipal) {
         String[] claims = getClaimsFromUser(userPrincipal);
         return JWT.create()
-                .withIssuer(SecurityConstant.COMPANY_LLC)
-                .withAudience(SecurityConstant.COMPANY_ADMIN)
+                .withIssuer(COMPANY_LLC)
+                .withAudience(COMPANY_ADMIN)
                 .withIssuedAt(new Date())
                 .withSubject(userPrincipal.getUsername())
                 .withArrayClaim(AUTHORITIES, claims)
-                .withExpiresAt(new Date(System.currentTimeMillis() + SecurityConstant.EXPIRATION_TIME))
-                .sign(Algorithm.HMAC512(secret.getBytes(StandardCharsets.UTF_8)))
-                ;
+                .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .sign(HMAC512(secret.getBytes()));
     }
 
     public List<GrantedAuthority> getAuthorities(String token) {
@@ -48,35 +52,20 @@ public class JwtTokenProvider {
         return stream(claims).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
     }
 
-    private String[] getClaimsFromToken(String token) {
-        JWTVerifier verifier = getJwtVerifier();
-        return verifier.verify(token).getClaim(AUTHORITIES).asArray(String.class);
-    }
-
-    private JWTVerifier getJwtVerifier() {
-        JWTVerifier verifier;
-        try {
-            Algorithm algorithm = Algorithm.HMAC512(secret);
-            verifier = JWT.require(algorithm).withIssuer(SecurityConstant.COMPANY_LLC).build();
-        } catch (JWTVerificationException exception) {
-            throw new JWTVerificationException(TOKEN_CANNOT_BE_VERIFIED);
-        }
-        return verifier;
-    }
-
     public Authentication getAuthentication(String username, List<GrantedAuthority> authorities, HttpServletRequest request) {
-        UsernamePasswordAuthenticationToken userPasswordAuthToken = new UsernamePasswordAuthenticationToken(username,null, authorities);
+        UsernamePasswordAuthenticationToken userPasswordAuthToken = new
+                UsernamePasswordAuthenticationToken(username, null, authorities);
         userPasswordAuthToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         return userPasswordAuthToken;
     }
 
     public boolean isTokenValid(String username, String token) {
-        JWTVerifier verifier= getJwtVerifier();
-        return StringUtils.isNotEmpty(username)&& isTokenExpired(verifier,token);
+        JWTVerifier verifier = getJWTVerifier();
+        return StringUtils.isNotEmpty(username) && !isTokenExpired(verifier, token);
     }
 
     public String getSubject(String token) {
-        JWTVerifier verifier = getJwtVerifier();
+        JWTVerifier verifier = getJWTVerifier();
         return verifier.verify(token).getSubject();
     }
 
@@ -85,10 +74,25 @@ public class JwtTokenProvider {
         return expiration.before(new Date());
     }
 
-    private String[] getClaimsFromUser(UserPrincipal userPrincipal) {
-        List<String> authorities = new ArrayList<>();
+    private String[] getClaimsFromToken(String token) {
+        JWTVerifier verifier = getJWTVerifier();
+        return verifier.verify(token).getClaim(AUTHORITIES).asArray(String.class);
+    }
 
-        for (GrantedAuthority grantedAuthority : userPrincipal.getAuthorities()) {
+    private JWTVerifier getJWTVerifier() {
+        JWTVerifier verifier;
+        try {
+            Algorithm algorithm = HMAC512(Base64.getDecoder().decode(secret.getBytes()));
+            verifier = JWT.require(algorithm).withIssuer(COMPANY_LLC).build();
+        } catch (JWTVerificationException exception) {
+            throw new JWTVerificationException(TOKEN_CANNOT_BE_VERIFIED);
+        }
+        return verifier;
+    }
+
+    private String[] getClaimsFromUser(UserPrincipal user) {
+        List<String> authorities = new ArrayList<>();
+        for (GrantedAuthority grantedAuthority : user.getAuthorities()) {
             authorities.add(grantedAuthority.getAuthority());
         }
         return authorities.toArray(new String[0]);

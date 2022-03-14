@@ -1,8 +1,6 @@
 package com.udemy.exmple.websecurity.filter;
 
-import com.udemy.exmple.websecurity.constant.SecurityConstant;
-import com.udemy.exmple.websecurity.utility.JwtTokenProvider;
-import org.springframework.http.HttpHeaders;
+import com.udemy.exmple.websecurity.utility.JWTTokenProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,9 +21,9 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Component
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
-    private JwtTokenProvider jwtTokenProvider;
+    private JWTTokenProvider jwtTokenProvider;
 
-    public JwtAuthorizationFilter(JwtTokenProvider jwtTokenProvider) {
+    public JwtAuthorizationFilter(JWTTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 

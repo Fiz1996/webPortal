@@ -38,7 +38,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 @Service
 @Transactional
-@Qualifier("userDetailsService")
+@Qualifier(value="userDetailsService")
 public class UserServiceImpl implements UserService, UserDetailsService {
     private Logger LOGGER = LoggerFactory.getLogger(getClass());
     private UserRepository userRepository;
@@ -189,7 +189,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public Users updateUser(String currentUsername, String newFirstName, String newLastName, String newUsername, String newEmail, String role, boolean isNotLocked, boolean isActive, MultipartFile image) throws EmailExistsException, UsernameExistsException, IOException {
-        Users currentUser = validateNewUsernameAndEmail(StringUtils.EMPTY, newUsername, newEmail);
+        Users currentUser = validateNewUsernameAndEmail(currentUsername, newUsername, newEmail);
         if (currentUser != null) {
             currentUser.setFirstName(newFirstName);
         }
@@ -259,18 +259,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 Files.createDirectories(userFolder);
                 LOGGER.info(DIRECTORY_CREATED);
             }
-            Files.deleteIfExists(Paths.get(userFolder + user.getUsername()+DOT,JPG_EXTENSION));
-            Files.copy(profileImage.getInputStream(),userFolder.resolve(user.getUsername() +DOT +JPG_EXTENSION) ,REPLACE_EXISTING);
+            Files.deleteIfExists(Paths.get(userFolder + user.getUsername() + DOT, JPG_EXTENSION));
+            Files.copy(profileImage.getInputStream(), userFolder.resolve(user.getUsername() + DOT + JPG_EXTENSION), REPLACE_EXISTING);
             user.setProfileImageUrl(setProfileImageUrl(user.getUsername()));
             userRepository.save(user);
-            LOGGER.info(FILE_SAVED_IN_FILE_SYSTEM +profileImage.getOriginalFilename());
+            LOGGER.info(FILE_SAVED_IN_FILE_SYSTEM + profileImage.getOriginalFilename());
 
         }
     }
 
     private String setProfileImageUrl(String username) {
-        return ServletUriComponentsBuilder.fromCurrentContextPath().path(USER_IMAGE_PATH + username +"\""
-        +username+DOT+JPG_EXTENSION).toUriString();
+        return ServletUriComponentsBuilder.fromCurrentContextPath().path(USER_IMAGE_PATH + username + "\"" + username + DOT + JPG_EXTENSION).toUriString();
     }
 
     private Role getRoleEnumName(String role) {
